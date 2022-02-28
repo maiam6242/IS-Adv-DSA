@@ -7,10 +7,9 @@ More Information: https://rpucella.net/other/is-dsa-sp22/
 import inspect
 import sys
 
-def nprint(*args):
+def nprint(*args, **kwargs):
     line = inspect.currentframe().f_back.f_lineno
-    print("%i:" % line, *args)
-
+    print("%i:" % line, *args, **kwargs)
 
 SENTINEL = -99
 
@@ -18,6 +17,8 @@ class Node():
     def __init__(self, val):
         """ This method initializes a node with a value, name, color, left, right, and parent"""
         self.value = val
+        # TODO: Ask Riccardo about name/key implementation
+        self.key = None
         self.black = True
         self.left = None
         self.right = None
@@ -53,16 +54,43 @@ class RedBlackTree:
             
         if current_node is None:
             return None 
+
         if current_node.value == k:
-            return current_node.value
-      
-        
-        
+            return current_node.value  
+
+    def search_return_node(self,k):
+        """ This method returns the node where key k is located, or None if no such key is found """ 
+
+        current_node = self.root
+
+        while(current_node and current_node.value != k):
+            if k < current_node.value:
+                current_node = current_node.left
+            else:
+                current_node = current_node.right
+            
+        if current_node is None:
+            return None 
+
+        if current_node.value == k:
+            return current_node
+
+    def minimum(self, n):
+        """ This method finds the minimum node in the tree """
+        while n.left is not None and n.left is not self.SENTINEL:
+            n = n.left
+        return n
 
     def insert(self, v):
         """
         This method inserts value v in the tree using the key computed from v as the key, overwriting any existing value at the same key
         """
+        # TODO: Comment!
+        # TODO: ASK RICCARDO -- DOES THE NAME THEN BECOME THE VALUE??
+        # TODO: Should this search for key instead?
+        # if self.search(v):
+        #     node_to_insert = self.search_return_node(v)
+        # else:
         node_to_insert = Node(v)
         node_to_insert.value = v
         node_to_insert.left = self.SENTINEL
@@ -82,16 +110,6 @@ class RedBlackTree:
                 x = x.right
         
         node_to_insert.parent = y
-        # nprint("node to insert value")
-        # nprint(node_to_insert.value)
-        # nprint("node to insert parent value")
-        # if node_to_insert.parent != None:
-        #     nprint(node_to_insert.parent.value)
-        # nprint("node to insert right")
-        # nprint(node_to_insert.right.value)
-        # nprint("node to insert parent right value")
-        # if node_to_insert.parent != None:
-        #     nprint(node_to_insert.parent.right.value)
 
         # check if the tree is empty, if it is, insert the new node as the root and make it black
         if y == None:
@@ -105,25 +123,12 @@ class RedBlackTree:
         else:
             y.right = node_to_insert
 
-        if y != None:
-            nprint("y value")
-            nprint(y.value)
-            nprint("y right value")
-            nprint(y.right.value)
-            nprint("y left value")
-            nprint(y.left.value)
-   
-
-        # if node_to_insert.parent == None:
-        #     node_to_insert.black = True
-        #     return
-
         if node_to_insert.parent.parent == None:
             node_to_insert.black = False
             return     
             
         # if node_to_insert != self.root and node_to_insert.parent.parent != None:
-        self.rb_insert_fixup(node_to_insert)
+        self.insert_fixup(node_to_insert)
 
     def left_rotation(self, starting_top_node):
         """
@@ -188,8 +193,9 @@ class RedBlackTree:
         starting_left_child.right = starting_top_node 
         starting_top_node.parent = starting_left_child     
 
-    def rb_insert_fixup(self, node_to_insert):
+    def insert_fixup(self, node_to_insert):
         """ """
+        # TODO: Comment
         # while the parent of the node to insert is red
         while node_to_insert.parent and node_to_insert.parent.black == False:
             if node_to_insert.parent == node_to_insert.parent.parent.left:
@@ -228,11 +234,118 @@ class RedBlackTree:
 
         self.root.black = True
                 
+    def transplant(self, to_be_replaced, subtree_root):
+        """ This method takes a subtree and transfers it to another place in the tree at 'to_be_replaced'"""
+
+        nprint(to_be_replaced.value)
+        nprint(to_be_replaced.parent.value)
+        nprint(to_be_replaced.left.value)
+        nprint(to_be_replaced.right.value)
+        nprint(to_be_replaced.parent.value)
+        nprint(subtree_root.parent.value)
+        # if to_be_replaced is root, make subtree root
+        if to_be_replaced.parent == self.SENTINEL:
+            self.root = subtree_root
+        # if to_be_replaced is left child
+        elif to_be_replaced == to_be_replaced.parent.left:
+            to_be_replaced.parent.left = subtree_root
+        # to_be_replaced is right child
+        else:
+            to_be_replaced.parent.right = subtree_root
+        
+        nprint(to_be_replaced.parent.value)
+        nprint(subtree_root.value)
+
+        subtree_root.parent = to_be_replaced.parent
+
+    def delete_fixup(self, x):
+        """ """
+        # TODO: Comment!!
+        while x != self.root and x.black == True:
+            if x == x.parent.left:
+                w = x.parent.right
+                if w.black == False:
+                    w.black == True
+                    x.parent.black = False
+                    self.left_rotation(x.parent)
+                    w = x.parent.right
+                if w.left.black == True and w.right.black == True:
+                    w.black = False
+                    x = x.parent
+                elif w.right.black == True:
+                    w.left.black = True
+                    w.black = False
+                    self.right_rotation(w)
+                    w = x.parent.right
+                w.black = x.parent.black
+                x.parent.black = True
+                w.right.black = True
+                self.left_rotation(x.parent)
+                x = self.root
+            else:
+                w = x.parent.left
+                if w.black == False:
+                    w.black == True
+                    x.parent.black = False
+                    self.left_rotation(x.parent)
+                    w = x.parent.left
+                if w.left.black == True and w.left.black == True:
+                    w.black = False
+                    x = x.parent
+                elif w.left.black == True:
+                    w.right.black = True
+                    w.black = False
+                    self.right_rotation(w)
+                    w = x.parent.left
+                w.black = x.parent.black
+                x.parent.black = True
+                w.left.black = True
+                self.left_rotation(x.parent)
+                x = self.root
+                
+        x.black = True 
 
     def delete(self, k):
         """
         This method deletes the node with key k if it exists
         """
+        # TODO: Comment!
+
+        # find node and make sure that it exists before trying to delete it
+        k_node = self.search_return_node(k)
+
+        if k_node is None:
+            return
+
+        y = k_node
+
+        y_original_color = y.black
+        if k_node.left == self.SENTINEL:
+            x = k_node.right          
+            self.transplant(k_node, k_node.right)
+        elif k_node.right == self.SENTINEL:
+            x = k_node.left
+            self.transplant(k_node,k_node.left)
+        else:
+
+            y = self.minimum(k_node.right)
+            nprint(y.parent.value)
+            y_original_color = y.black
+            x = y.right
+            if y.parent == k_node:
+                x.parent = y
+            else:
+                nprint("printing y")
+                nprint(y.value)
+                self.transplant(y, y.right)
+                y.right = k_node.right
+                y.right.parent = y
+            self.transplant(k_node,y)
+            y.left = k_node.left
+            y.left.parent = y
+            y.black = k_node.black
+        if y_original_color == True:
+            self.delete_fixup(x)
 
     def tree_nprint(self):
         """
@@ -278,18 +391,21 @@ class RedBlackTree:
             self.__print_helper(node.left, indent, False)
             self.__print_helper(node.right, indent, True)
 
-
     def print_tree(self):
         self.__print_helper(self.root, "", True)
 
 if __name__ == "__main__":
-    tree1 = RedBlackTree()
+    tree1 = RedBlackTree(key=lambda obj: obj.name)
     # fill a tree with integers
     root = Node(val = 10)
     for x in range(1,60):
        tree1.insert(x)
+    tree1.insert(1)
     tree1.print_tree()
-    print(tree1.search(25))
+    nprint(tree1.search(25))
+    tree1.delete(68)
+    nprint(tree1.search(39))
+    tree1.print_tree()
     
     
     
