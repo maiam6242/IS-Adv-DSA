@@ -15,7 +15,9 @@ SENTINEL = -99
 
 class Node():
     def __init__(self, val):
-        """ This method initializes a node with a value, name, color, left, right, and parent"""
+        """ 
+        This method initializes a node with a value, name, color, left, right, and parent
+        """
         self.value = val
         # TODO: Ask Riccardo about name/key implementation
         self.key = None
@@ -26,7 +28,9 @@ class Node():
 
 class RedBlackTree:
     def __init__(self, key = None):
-        """ This method initializes the Red Black Tree to be blank, and sorted by an optional function called key """
+        """ 
+        This method initializes the Red Black Tree to be blank, and sorted by an optional function called key
+        """
     
         self.SENTINEL = Node(val = SENTINEL)
         self.SENTINEL.black = True
@@ -59,7 +63,9 @@ class RedBlackTree:
             return current_node.value  
 
     def search_return_node(self,k):
-        """ This method returns the node where key k is located, or None if no such key is found """ 
+        """ 
+        This method returns the node where key k is located, or None if no such key is found 
+        """ 
 
         current_node = self.root
 
@@ -85,12 +91,15 @@ class RedBlackTree:
         """
         This method inserts value v in the tree using the key computed from v as the key, overwriting any existing value at the same key
         """
-        # TODO: Comment!
         # TODO: ASK RICCARDO -- DOES THE NAME THEN BECOME THE VALUE??
         # TODO: Should this search for key instead?
+
         # if self.search(v):
+                #   TODO: Ask Riccardo, should is this what it looks like for node to insert to have same key???
         #     node_to_insert = self.search_return_node(v)
         # else:
+
+        # create a new node in the tree with value v
         node_to_insert = Node(v)
         node_to_insert.value = v
         node_to_insert.left = self.SENTINEL
@@ -117,6 +126,7 @@ class RedBlackTree:
             self.root = node_to_insert
             return
 
+        # if not, place it in the tree where it should be (according to binary search tree rules)
         elif node_to_insert.value < y.value:
             y.left = node_to_insert
 
@@ -128,6 +138,8 @@ class RedBlackTree:
             return     
             
         # if node_to_insert != self.root and node_to_insert.parent.parent != None:
+
+        # fix the tree coloring to ensure red/black coloring rules still hold
         self.insert_fixup(node_to_insert)
 
     def left_rotation(self, starting_top_node):
@@ -194,18 +206,23 @@ class RedBlackTree:
         starting_top_node.parent = starting_left_child     
 
     def insert_fixup(self, node_to_insert):
-        """ """
-        # TODO: Comment
-        # while the parent of the node to insert is red
+        """ 
+        This method fixes a tree's red-black coloring on the insertion of a new node
+        """
+
+        # while the parent of the node to insert is red and exists
         while node_to_insert.parent and node_to_insert.parent.black == False:
+            # if the node to insert's parent is the left child of their parent (node_to_insert's grandparent)
             if node_to_insert.parent == node_to_insert.parent.parent.left:
+                # set y to be node_to_insert's parent's sibling
                 y = node_to_insert.parent.parent.right
+                # if node_to_insert's parent's sibling is red, change coloring of node_to_insert's parent's sibling, node_to_insert's parent, and node to insert's grandparent. Then make node to insert's grandparent take place of node_to_insert
                 if y.black == False:
                     node_to_insert.parent.black = True
                     y.black = True
                     node_to_insert.parent.parent.black = False
                     node_to_insert = node_to_insert.parent.parent
-
+                # if node_to_insert's parent's sibling is black, check if node_to_insert is their parent's right child. If so, make node_to_insert equal to node_to_insert's original parent and do a left rotation. Then (even if node_to_insert was not their parent's right child), change tree colors and do a right rotation on node_to_insert's grandparent (which may be their original grandparent, and may be their parent's grandparent, depending on the if statement outcome)
                 else:
                     if node_to_insert == node_to_insert.parent.right:
                         node_to_insert = node_to_insert.parent
@@ -213,16 +230,13 @@ class RedBlackTree:
                     node_to_insert.parent.black = True
                     node_to_insert.parent.parent.black = False
                     self.right_rotation(node_to_insert.parent.parent)
-                
+            #  otherwise if the node to insert's parent is the right child of their parent (node_to_insert's grandparent), set y to be node_to_insert's parent's sibling, and do the whole process outlined above in the opposite direction (essentially swapping right for left at every turn)
             else:
                 y = node_to_insert.parent.parent.left
                 if y.black == False:
                     node_to_insert.parent.black = True
                     y.black = True
                     node_to_insert.parent.parent.black = False
-                    self.print_tree()
-                    nprint(node_to_insert.parent.parent.value)
-                    nprint(node_to_insert.parent.parent.black)
                     node_to_insert = node_to_insert.parent.parent
                 else:
                     if node_to_insert == node_to_insert.parent.left:
@@ -235,14 +249,9 @@ class RedBlackTree:
         self.root.black = True
                 
     def transplant(self, to_be_replaced, subtree_root):
-        """ This method takes a subtree and transfers it to another place in the tree at 'to_be_replaced'"""
-
-        nprint(to_be_replaced.value)
-        nprint(to_be_replaced.parent.value)
-        nprint(to_be_replaced.left.value)
-        nprint(to_be_replaced.right.value)
-        nprint(to_be_replaced.parent.value)
-        nprint(subtree_root.parent.value)
+        """ 
+        This method takes a subtree and transfers it to another place in the tree at 'to_be_replaced'
+        """       
         # if to_be_replaced is root, make subtree root
         if to_be_replaced.parent == self.SENTINEL:
             self.root = subtree_root
@@ -252,36 +261,46 @@ class RedBlackTree:
         # to_be_replaced is right child
         else:
             to_be_replaced.parent.right = subtree_root
-        
-        nprint(to_be_replaced.parent.value)
-        nprint(subtree_root.value)
-
+       
         subtree_root.parent = to_be_replaced.parent
 
     def delete_fixup(self, x):
-        """ """
-        # TODO: Comment!!
-        while x != self.root and x.black == True:
+        """ 
+        This method maintains the red-black properties of the tree after deletion
+        """
+       
+        # while x isn't the root and is black
+        while x != self.root and x.black == True and x.value != SENTINEL:
+            
+            # if x is the left child, make w its sibling
             if x == x.parent.left:
                 w = x.parent.right
+                # if it's sibling is red, change its color to black, and the parent of x to red. Then rotate the tree to move the black sibling above the red parent and make w the right child of x
                 if w.black == False:
                     w.black == True
                     x.parent.black = False
                     self.left_rotation(x.parent)
                     w = x.parent.right
+
+                # if both w's children are black, set it to be red, and make the parent of x equal x
                 if w.left.black == True and w.right.black == True:
                     w.black = False
                     x = x.parent
-                elif w.right.black == True:
-                    w.left.black = True
-                    w.black = False
-                    self.right_rotation(w)
-                    w = x.parent.right
+
+                # if the right child of w is black, set the color of the left child of w to black and the color of w to red, then right rotate so two reds are not in a parent-child relationship and assign the right child of x's parent to w 
+                else:
+                    if w.right.black == True:
+                        w.left.black = True
+                        w.black = False
+                        self.right_rotation(w)
+                        w = x.parent.right
+                # TODO: Comment more here
                 w.black = x.parent.black
                 x.parent.black = True
                 w.right.black = True
                 self.left_rotation(x.parent)
                 x = self.root
+
             else:
                 w = x.parent.left
                 if w.black == False:
@@ -289,19 +308,23 @@ class RedBlackTree:
                     x.parent.black = False
                     self.left_rotation(x.parent)
                     w = x.parent.left
+
                 if w.left.black == True and w.left.black == True:
                     w.black = False
                     x = x.parent
-                elif w.left.black == True:
-                    w.right.black = True
-                    w.black = False
-                    self.right_rotation(w)
-                    w = x.parent.left
-                w.black = x.parent.black
-                x.parent.black = True
-                w.left.black = True
-                self.left_rotation(x.parent)
-                x = self.root
+
+                else:
+                    if w.left.black == True:
+                        w.right.black = True
+                        w.black = False
+                        self.right_rotation(w)
+                        w = x.parent.left
+                
+                    w.black = x.parent.black
+                    x.parent.black = True
+                    w.left.black = True
+                    self.left_rotation(x.parent)
+                    x = self.root
                 
         x.black = True 
 
@@ -309,8 +332,7 @@ class RedBlackTree:
         """
         This method deletes the node with key k if it exists
         """
-        # TODO: Comment!
-
+    
         # find node and make sure that it exists before trying to delete it
         k_node = self.search_return_node(k)
 
@@ -318,32 +340,40 @@ class RedBlackTree:
             return
 
         y = k_node
-
         y_original_color = y.black
+
+        # if the node's (k_node) left child is empty, move k_node's right child to where k_node was
         if k_node.left == self.SENTINEL:
             x = k_node.right          
             self.transplant(k_node, k_node.right)
+        # if the node's (k_node) right child is empty, move k_node's left child to where k_node was
         elif k_node.right == self.SENTINEL:
             x = k_node.left
             self.transplant(k_node,k_node.left)
-        else:
 
+        else:
+            # if k_node has two children, find the minimum of k_node's subtree and store that node and it's right child (which should be a sentinel)
             y = self.minimum(k_node.right)
-            nprint(y.parent.value)
+
             y_original_color = y.black
             x = y.right
+            # if k_node is the parent of the minimum of its subtree, make the parent of the minimum's child in the subtree a sentinel node (essentially just taking a leaf off the end)
             if y.parent == k_node:
                 x.parent = y
+           
+            # CHECK THIS: If k_node isn't the parent of the minimum of its subtree, shift the right subtree of the minimum where y was, and make the right child of the node to be deleted the right child of the minimum. Then make sure that the binary tree holds
             else:
-                nprint("printing y")
-                nprint(y.value)
                 self.transplant(y, y.right)
                 y.right = k_node.right
                 y.right.parent = y
-            self.transplant(k_node,y)
+                
+            # Replace y with node to be deleted and set the coloring and nodes accordingly
+            self.transplant(k_node, y)
             y.left = k_node.left
             y.left.parent = y
             y.black = k_node.black
+        
+        # if the original color is black, fix tree coloring with delete_fixup
         if y_original_color == True:
             self.delete_fixup(x)
 
@@ -372,9 +402,11 @@ class RedBlackTree:
             if n.right: 
                 nextlevel.append(n.right)
             thislevel = nextlevel
-     
-# Printing the tree
+
     def __print_helper(self, node, indent, last):
+        """
+        Print tree function that I found online and slightly modified to color in the terminal for easy visualization of the tree
+        """
         if node != self.SENTINEL:
             sys.stdout.write(indent)
             if last:
@@ -397,14 +429,19 @@ class RedBlackTree:
 if __name__ == "__main__":
     tree1 = RedBlackTree(key=lambda obj: obj.name)
     # fill a tree with integers
-    root = Node(val = 10)
-    for x in range(1,60):
+    for x in range(1,30):
        tree1.insert(x)
     tree1.insert(1)
     tree1.print_tree()
     nprint(tree1.search(25))
-    tree1.delete(68)
-    nprint(tree1.search(39))
+    tree1.delete(10)
+    tree1.print_tree()
+    # tree1.print_tree()
+    tree1.delete(4)
+    tree1.print_tree()
+    tree1.delete(20)
+    tree1.print_tree()
+    tree1.delete(27)
     tree1.print_tree()
     
     
