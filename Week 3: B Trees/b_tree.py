@@ -76,6 +76,7 @@ class BTree():
 
     def split_child(self, parent_node, index):
         '''
+        Splits the children of node around an index
         '''
         t = self.t
         y = parent_node.child[index]
@@ -132,6 +133,7 @@ class BTree():
 
     def insert_nonfull(self, x, k, v):
         '''
+        if a node is not full, insert key and value in that node in correct location, rearranging the tree accordingly
         '''
         i = len(x.keys) - 1
         if x.leaf:
@@ -197,6 +199,7 @@ class BTree():
           
     def delete_internal_node(self, node, k, i):
         '''
+        
         '''
         t = self.t
 
@@ -226,6 +229,7 @@ class BTree():
 
     def delete_predecessor(self, node):
         '''
+
         '''
         if node.leaf:
             # TODO: Does this delete the node straight off the tree? Do any key val dicts need to be adjusted?
@@ -254,6 +258,7 @@ class BTree():
 
     def delete_merge(self, node, index_first_child, index_second_child):
         '''
+
         '''
         child_node = node.child[index_first_child]
 
@@ -292,6 +297,7 @@ class BTree():
 
     def delete_sibling(self, node, index_first_child, index_second_child):
         '''
+
         '''
         child_node = node.child[index_first_child]
         if index_first_child < index_second_child:
